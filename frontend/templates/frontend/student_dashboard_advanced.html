@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Étudiant Avancé</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fas fa-graduation-cap"></i> E-learning
+            </a>
+            <div class="user-info">
+                <span>Bonjour {{ user.username }}</span>
+                <span class="badge badge-student">Étudiant</span>
+                <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Dashboard Étudiant Avancé</h1>
+        <h2>Bienvenue {{ user.username }}</h2>
+
+        {% if enrollments %}
+            <div class="course-list">
+                {% for enrollment in enrollments %}
+                    <div class="course-item">
+                        <strong>{{ enrollment.course.title }}</strong> — Progression : {{ enrollment.progress }}%
+                        <p>{{ enrollment.course.description }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Vous n'êtes inscrit à aucun cours pour l'instant.</p>
+        {% endif %}
+
+        <a href="{% url 'home' %}" class="btn btn-primary">
+            <i class="fas fa-home"></i> Accueil
+        </a>
+    </div>
+</body>
+</html>

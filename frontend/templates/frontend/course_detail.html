@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.title }} - E-learning</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fas fa-graduation-cap"></i> E-learning
+            </a>
+            
+            <div>
+                <a href="{% url 'course_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> Liste des cours
+                </a>
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Accueil
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="course-card">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="course-header">
+                <h1 class="course-title">{{ course.title }}</h1>
+                <div class="user-info">
+                    {% if enrollment %}
+                        <span class="badge badge-info">
+                            <i class="fas fa-chart-line"></i> Progression: {{ enrollment.progress|floatformat:1 }}%
+                        </span>
+                    {% endif %}
+                    {% if has_certificate %}
+                        <span class="badge badge-success">
+                            <i class="fas fa-certificate"></i> Certificat obtenu
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="course-body">
+                {% if course.teacher %}
+                <div class="mb-3">
+                    <p><strong><i class="fas fa-chalkboard-teacher"></i> Enseignant:</strong> 
+                        {{ course.teacher.get_full_name|default:course.teacher.username }}
+                        <span class="badge badge-teacher">Enseignant</span>
+                    </p>
+                </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <h3 class="mb-2"><i class="fas fa-info-circle"></i> Description</h3>
+                    <p class="course-description">{{ course.description }}</p>
+                </div>
+                
+                <!-- Section Progression -->
+                {% if is_enrolled %}
+                <div class="course-progress mb-4">
+                    <div class="progress-text">
+                        <span><i class="fas fa-tasks"></i> Votre progression</span>
+                        <span class="progress-value" id="progress-percent">{{ enrollment.progress|floatformat:1 }}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="mt-2 text-center">
+                        <span class="small-text">
+                            <i class="fas fa-check-circle"></i> {{ enrollment.completed_chapters|default:0 }} chapitres complétés
+                            / 
+                            <i class="fas fa-book"></i> {{ total_chapters|default:0 }} chapitres au total
+                        </span>
+                    </div>
+                    {% if enrollment.progress >= 100 %}
+                    <div class="alert alert-success mt-3 p-2">
+                        <i class="fas fa-trophy"></i> Félicitations ! Vous avez complété ce cours à 100% !
+                        {% if not has_certificate %}
+                        <button class="btn btn-success btn-sm ml-2" onclick="generateCertificate()">
+                            <i class="fas fa-certificate"></i> Générer mon certificat
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                {% if course.content %}
+                <div class="mb-4">
+                    <h3 class="mb-2"><i class="fas fa-book-open"></i> Contenu détaillé</h3>
+                    <div class="course-content">
+                        {{ course.content|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Section Modules et Chapitres -->
+                {% if course.modules.all %}
+                <div class="mb-4">
+                    <h3 class="mb-3"><i class="fas fa-sitemap"></i> Structure du cours</h3>
+                    <div class="modules-container">
+                        {% for module in course.modules.all %}
+                        <div class="module-card">
+                            <h4 class="module-title">
+                                <i class="fas fa-folder-open"></i> {{ module.title }}
+                                <span class="badge badge-secondary ml-2">{{ module.chapters.count }} chapitres</span>
+                            </h4>
+                            {% if module.chapters.all %}
+                            <div class="chapters-list">
+                                {% for chapter in module.chapters.all %}
+                                <div class="chapter-item" id="chapter-{{ chapter.id }}">
+                                    <div class="chapter-info">
+                                        <i class="fas fa-file-alt chapter-icon"></i>
+                                        <div>
+                                            <span class="chapter-title">{{ chapter.title }}</span>
+                                            {% if chapter.content %}
+                                            <div class="small-text mt-1">{{ chapter.content|truncatewords:20 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="chapter-actions">
+                                        {% if chapter.quizzes.all %}
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-question-circle"></i> Quiz
+                                        </span>
+                                        {% endif %}
+                                        
+                                        {% if is_enrolled %}
+                                            {% if chapter.id in completed_chapters_ids %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check-circle"></i> Complété
+                                            </span>
+                                            {% else %}
+                                            <button class="btn btn-success btn-sm mark-completed-btn" 
+                                                    data-chapter-id="{{ chapter.id }}"
+                                                    data-course-id="{{ course.id }}">
+                                                <i class="fas fa-check"></i> Marquer comme lu
+                                            </button>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Section Quiz -->
+{% if quizzes and is_enrolled %}
+<div class="mb-4" id="quiz-section">
+    <h3 class="mb-3"><i class="fas fa-question-circle"></i> Quiz disponibles</h3>
+    
+    <div class="course-grid">
+        {% for quiz in quizzes %}
+        <div class="course-card">
+            <div class="course-header">
+                <h4>{{ quiz.title }}</h4>
+                <span class="badge badge-info">{{ quiz.time_limit }} minutes</span>
+            </div>
+            <div class="course-body">
+                <p>{{ quiz.description|default:"Testez vos connaissances" }}</p>
+                <div class="course-description">
+                    <span><i class="fas fa-question-circle"></i> {{ quiz.questions.count }} questions</span><br>
+                    <span><i class="fas fa-percentage"></i> Score minimal: {{ quiz.passing_score }}%</span>
+                </div>
+                <div class="course-actions">
+                    <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-warning btn-block">
+                        <i class="fas fa-play-circle"></i> Commencer le quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% elif is_enrolled and not quizzes %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    Aucun quiz disponible pour ce cours pour le moment.
+</div>
+{% elif not is_enrolled and quizzes %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle"></i>
+    Inscrivez-vous au cours pour accéder aux quiz.
+</div>
+{% endif %}
+                
+                <!-- Actions du cours -->
+                {% if user.is_authenticated and user.role == "student" and is_enrolled %}
+                <div class="mb-4">
+                    <h3 class="mb-3"><i class="fas fa-cogs"></i> Actions</h3>
+                    <div class="course-actions">
+                        <a href="{% url 'course_forum' course.id %}" class="btn btn-info">
+                            <i class="fas fa-comments"></i> Forum
+                        </a>
+                        
+                        {% if has_quizzes %}
+                        <a href="#quiz-section" class="btn btn-warning">
+                            <i class="fas fa-question-circle"></i> Quiz
+                        </a>
+                        {% endif %}
+                        
+                        {% if has_certificate %}
+                        <a href="{% url 'view_certificate' user_certificate.certificate_id %}" class="btn btn-success">
+                            <i class="fas fa-certificate"></i> Voir certificat
+                        </a>
+                        {% elif enrollment and enrollment.progress >= 100 %}
+                        <button class="btn btn-success" onclick="generateCertificate()">
+                            <i class="fas fa-certificate"></i> Générer certificat
+                        </button>
+                        {% endif %}
+                        
+                        <button class="btn btn-danger" onclick="unenrollFromCourse()">
+                            <i class="fas fa-user-minus"></i> Se désinscrire
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Boutons généraux -->
+                <div class="course-actions mt-4">
+                    <a href="{% url 'course_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour à la liste
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Accueil
+                    </a>
+                    
+                    {% if user.is_authenticated and user.role == "student" and not is_enrolled %}
+                    <button class="btn btn-success enroll-button">
+                        <i class="fas fa-user-plus"></i> S'inscrire
+                    </button>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated and user.role == "teacher" and user == course.teacher %}
+                    <a href="{% url 'edit_course' course.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Éditer
+                    </a>
+                    {% endif %}
+                    
+                    {% if user.role == "admin" or user.is_superuser %}
+                    <a href="{% url 'edit_course' course.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Éditer (Admin)
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser la barre de progression
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercent = document.getElementById('progress-percent');
+            
+            if (progressFill && progressPercent) {
+                const progressValue = parseFloat(progressPercent.textContent);
+                if (!isNaN(progressValue)) {
+                    progressFill.style.width = progressValue + '%';
+                }
+            }
+            
+            // Gestion de l'inscription
+            const enrollButton = document.querySelector('.enroll-button');
+            if (enrollButton) {
+                enrollButton.addEventListener('click', function() {
+                    enrollToCourse("{{ course.id }}");
+                });
+            }
+            
+            // Boutons "Marquer comme lu"
+            document.querySelectorAll('.mark-completed-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const chapterId = this.dataset.chapterId;
+                    markChapterCompleted(chapterId);
+                });
+            });
+        });
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        function markChapterCompleted(chapterId) {
+            const csrfToken = getCookie('csrftoken');
+            const button = document.querySelector(`.mark-completed-btn[data-chapter-id="${chapterId}"]`);
+            
+            if (!button) return;
+            
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
+            
+            fetch(`/chapter/${chapterId}/complete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    button.outerHTML = '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Complété</span>';
+                    document.getElementById('progress-percent').textContent = data.progress + '%';
+                    document.getElementById('progress-fill').style.width = data.progress + '%';
+                    
+                    const statsElement = document.querySelector('.small-text');
+                    if (statsElement) {
+                        statsElement.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.completed + ' chapitres complétés / <i class="fas fa-book"></i> ' + data.total + ' chapitres au total';
+                    }
+                    
+                    showAlert('Chapitre marqué comme complété !', 'success');
+                } else {
+                    showAlert('Erreur: ' + data.error, 'error');
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                showAlert('Erreur réseau', 'error');
+                button.disabled = false;
+                button.innerHTML = originalText;
+            });
+        }
+        
+        function enrollToCourse(courseId) {
+    if (!confirm('Voulez-vous vous inscrire à ce cours ?')) return;
+    
+    const csrfToken = getCookie('csrftoken');
+    
+    // Méthode SIMPLE et SÛRE
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/courses/${courseId}/enroll/`;
+    form.style.display = 'none';
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    
+    form.appendChild(csrfInput);
+    document.body.appendChild(form);
+    
+    // Soumet le formulaire
+    form.submit();
+}
+        function unenrollFromCourse() {
+    if (!confirm('Êtes-vous sûr de vouloir vous désinscrire de ce cours ?')) return;
+    
+    const csrfToken = getCookie('csrftoken');
+    const courseId = "{{ course.id }}";
+    
+    // Méthode SIMPLE et SÛRE
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/courses/${courseId}/unenroll/`;
+    form.style.display = 'none';
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    
+    form.appendChild(csrfInput);
+    document.body.appendChild(form);
+    
+    form.submit();
+}
+        function generateCertificate() {
+            if (!confirm('Générer un certificat pour ce cours ?')) return;
+            
+            const csrfToken = getCookie('csrftoken');
+            const courseId = "{{ course.id }}";
+            
+            fetch(`/courses/${courseId}/certificate/generate/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Certificat généré !', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('Erreur: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('Erreur lors de la génération', 'error');
+            });
+        }
+        
+        function showAlert(message, type) {
+            const oldAlerts = document.querySelectorAll('.alert-custom');
+            oldAlerts.forEach(alert => alert.remove());
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-' + type + ' alert-custom';
+            alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000; animation: slideIn 0.3s ease;';
+            
+            alertDiv.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i><span>' + message + '</span>';
+            
+            document.body.appendChild(alertDiv);
+            
+            const style = document.createElement('style');
+            style.textContent = '@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } } @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }';
+            document.head.appendChild(style);
+            
+            setTimeout(() => {
+                alertDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 5000);
+        }
+    </script>
+
+    <style>
+        /* CSS MINIMAL SANS ERREURS */
+        .modules-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .module-card {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f9f9f9;
+        }
+        
+        .module-card:last-child {
+            border-bottom: none;
+        }
+        
+        .module-title {
+            color: #007bff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .chapters-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .chapter-item {
+            padding: 12px 15px;
+            border-bottom: 1px dashed #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .chapter-item:last-child {
+            border-bottom: none;
+        }
+        
+        .chapter-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+        
+        .chapter-icon {
+            color: #28a745;
+            min-width: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .chapter-title {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .chapter-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .small-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .ml-2 {
+            margin-left: 0.5rem;
+        }
+        
+        .alert-custom {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+        }
+    </style>
+</body>
+</html>

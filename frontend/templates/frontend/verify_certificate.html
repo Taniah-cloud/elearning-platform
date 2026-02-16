@@ -1,0 +1,72 @@
+<!-- frontend/templates/frontend/verify_certificate.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification de Certificat</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2><i class="fas fa-check-circle"></i> Vérification de Certificat</h2>
+            </div>
+            <div class="card-body">
+                {% if valid %}
+                <div class="alert alert-success">
+                    <h4>✅ Certificat Valide</h4>
+                    <p>Ce certificat a été émis par la Plateforme E-Learning et est authentique.</p>
+                </div>
+                
+                <div class="certificate-info">
+                    <h5>Informations du Certificat :</h5>
+                    <table class="table">
+                        <tr>
+                            <th>ID Certificat :</th>
+                            <td>{{ certificate.certificate_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Étudiant :</th>
+                            <td>{{ certificate.student.get_full_name|default:certificate.student.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Cours :</th>
+                            <td>{{ certificate.course.title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Enseignant :</th>
+                            <td>{{ certificate.course.teacher.get_full_name|default:certificate.course.teacher.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date d'émission :</th>
+                            <td>{{ certificate.issued_at|date:"d F Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Technologie PDF :</th>
+                            <td>WeasyPrint (cahier des charges) + ReportLab fallback</td>
+                        </tr>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-danger">
+                    <h4>❌ Certificat Invalide</h4>
+                    <p>Ce certificat n'existe pas ou a été révoqué.</p>
+                </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{% url 'view_certificate' certificate.certificate_id %}" class="btn btn-primary">
+                        <i class="fas fa-eye"></i> Voir le certificat
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-secondary">
+                        <i class="fas fa-home"></i> Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

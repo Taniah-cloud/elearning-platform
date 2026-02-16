@@ -1,0 +1,94 @@
+#:kivy 2.3.1
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDIcon kivymd.uix.label.MDIcon
+#:import dp kivy.metrics.dp
+#:import MDCard kivymd.uix.card.MDCard
+
+<QuizResultsScreen>:
+    name: "quiz_results"
+    
+    MDBoxLayout:
+        orientation: "vertical"
+        md_bg_color: app.theme_colors['background']
+        
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(64)
+            padding: dp(20), 0, dp(20), 0
+            md_bg_color: app.theme_colors['primary']
+            
+            MDIconButton:
+                icon: "arrow-left"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                on_release: app.sm.current = "quiz_list"
+            
+            MDLabel:
+                text: "Résultats"
+                halign: "center"
+                font_style: "H5"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                bold: True
+        
+        ScrollView:
+            do_scroll_x: False
+            
+            MDBoxLayout:
+                orientation: "vertical"
+                padding: dp(30)
+                spacing: dp(30)
+                size_hint_y: None
+                height: self.minimum_height
+                
+                MDCard:
+                    orientation: "vertical"
+                    padding: dp(30)
+                    spacing: dp(20)
+                    #elevation: 4
+                    #radius: [dp(12),]
+                    #shadow_radius: [0,0,0,0]
+                    md_bg_color: [1, 1, 1, 1]
+                    size_hint: 1, None
+                    height: self.minimum_height
+                    
+                    MDLabel:
+                        id: result_icon
+                        text: "🏆"
+                        halign: "center"
+                        font_style: "H1"
+                        size_hint_y: None
+                        height: dp(80)
+                    
+                    MDLabel:
+                        id: score_label
+                        text: "0%"
+                        halign: "center"
+                        font_style: "H2"
+                        bold: True
+                        theme_text_color: "Primary"
+                    
+                    MDLabel:
+                        id: status_label
+                        text: "Réussi !"
+                        halign: "center"
+                        font_style: "H5"
+                        theme_text_color: "Custom"
+                        text_color: app.theme_colors['success']
+                    
+                    MDLabel:
+                        id: details_label
+                        text: "Score: 0/0"
+                        halign: "center"
+                        theme_text_color: "Secondary"
+                    
+                    MDRaisedButton:
+                        text: "TERMINER"
+                        size_hint: 0.6, None
+                        height: dp(48)
+                        pos_hint: {"center_x": 0.5}
+                        md_bg_color: app.theme_colors['primary']
+                        on_release: app.sm.current = "quiz_list"

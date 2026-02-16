@@ -1,0 +1,146 @@
+#:kivy 2.3.1
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import dp kivy.metrics.dp
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDIconButton kivymd.uix.button.MDIconButton
+
+<AddCourseScreen>:
+    name: "add_course"
+    
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: 0
+        md_bg_color: app.theme_colors['primary']
+        
+        # Header
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(64)
+            padding: dp(20), 0, dp(20), 0
+            md_bg_color: app.theme_colors['primary_dark']
+            
+            MDIconButton:
+                id: back_btn
+                icon: "arrow-left"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                on_release: app.sm.current = "home"
+            
+            MDLabel:
+                text: "Nouveau Cours"
+                halign: "center"
+                font_style: "H5"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                bold: True
+                size_hint_x: 1
+        
+        # Formulaire
+        ScrollView:
+            do_scroll_x: False
+            
+            MDBoxLayout:
+                orientation: "vertical"
+                padding: dp(30)
+                spacing: dp(30)
+                size_hint_y: None
+                height: max(self.minimum_height, root.height * 0.8)
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                
+                # Carte formulaire
+                MDCard:
+                    orientation: "vertical"
+                    padding: dp(30)
+                    spacing: dp(25)
+                    #elevation: 4
+                    #radius: [dp(12),]
+                    #shadow_radius: [0,0,0,0]
+                    md_bg_color: [1, 1, 1, 1]
+                    size_hint: 0.9, None
+                    height: dp(450)
+                    pos_hint: {"center_x": 0.5}
+                    
+                    MDLabel:
+                        text: "Création d'un cours"
+                        halign: "center"
+                        font_style: "H5"
+                        theme_text_color: "Primary"
+                        bold: True
+                        size_hint_y: None
+                        height: dp(50)
+                    
+                    # Champ Titre
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: dp(10)
+                        size_hint_x: 0.9
+                        pos_hint: {"center_x": 0.5}
+                        
+                        MDLabel:
+                            text: "Titre du cours"
+                            font_style: "Body1"
+                            theme_text_color: "Primary"
+                            size_hint_y: None
+                            height: dp(25)
+                        
+                        MDTextField:
+                            id: title
+                            hint_text: "Entrez le titre du cours"
+                            mode: "fill"
+                            size_hint_x: 1
+                            icon_left: "book"
+                            fill_color: app.theme_colors['gray_light']
+                    
+                    # Champ Description
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        spacing: dp(10)
+                        size_hint_x: 0.9
+                        pos_hint: {"center_x": 0.5}
+                        
+                        MDLabel:
+                            text: "Description"
+                            font_style: "Body1"
+                            theme_text_color: "Primary"
+                            size_hint_y: None
+                            height: dp(25)
+                        
+                        MDTextField:
+                            id: description
+                            hint_text: "Décrivez le contenu du cours"
+                            multiline: True
+                            mode: "fill"
+                            size_hint_x: 1
+                            icon_left: "text"
+                            fill_color: app.theme_colors['gray_light']
+                            height: dp(120)
+                    
+                    # Boutons
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        spacing: dp(20)
+                        size_hint_y: None
+                        height: dp(60)
+                        size_hint_x: 0.9
+                        pos_hint: {"center_x": 0.5}
+                        padding: [0, dp(20), 0, 0]
+                        
+                        MDRaisedButton:
+                            id: cancel_btn
+                            text: "Annuler"
+                            size_hint_x: 0.5
+                            elevation: 2
+                            md_bg_color: app.theme_colors['gray']
+                            on_release: app.sm.current = "home"
+                        
+                        MDRaisedButton:
+                            id: create_btn
+                            text: "Créer"
+                            size_hint_x: 0.5
+                            elevation: 2
+                            md_bg_color: app.theme_colors['primary']
+                            on_release: root.add_course()

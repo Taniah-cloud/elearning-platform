@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: {{ quiz.title }} - E-learning</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .quiz-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .quiz-info span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--gray-lighter);
+            border-radius: 50px;
+            font-size: 0.9rem;
+        }
+        
+        .questions-container {
+            margin-bottom: 40px;
+        }
+        
+        .question-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .question-header h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+        
+        .points {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .question-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .choice-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .choice-label:hover {
+            background: var(--gray-lighter);
+            border-color: var(--secondary);
+        }
+        
+        .choice-input:checked + .choice-text {
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .choice-text {
+            flex: 1;
+        }
+        
+        .quiz-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-lg {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+        }
+        
+        #timer {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+        
+        .timer-warning {
+            background: var(--warning) !important;
+            color: white !important;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .quiz-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .quiz-info span {
+                justify-content: center;
+            }
+            
+            .question-header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .quiz-actions {
+                flex-direction: column;
+            }
+            
+            .btn-lg {
+                width: 100%;
+                text-align: center;
+            }
+        }
+        
+        textarea.form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        textarea.form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        input[type="radio"],
+        input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'course_detail' quiz.chapter.module.course.id %}" class="logo">
+                <i class="fas fa-arrow-left"></i> Retour au cours
+            </a>
+            <div class="user-info">
+                <span>{{ user.username }}</span>
+                <span class="badge badge-student">Quiz</span>
+                <span id="timer">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="quiz-header">
+            <h1 class="dashboard-title">{{ quiz.title }}</h1>
+            {% if quiz.description %}
+            <p class="dashboard-subtitle">{{ quiz.description }}</p>
+            {% endif %}
+            <div class="quiz-info">
+                <span><i class="fas fa-question-circle"></i> {{ questions|length }} questions</span>
+                <span><i class="fas fa-clock"></i> {{ quiz.time_limit }} minutes</span>
+                <span><i class="fas fa-check-circle"></i> Score minimal: {{ quiz.passing_score }}%</span>
+            </div>
+        </div>
+
+        <form id="quizForm" method="POST" action="{% url 'submit_quiz' quiz.id %}">
+            {% csrf_token %}
+            
+            <div class="questions-container">
+                {% for question in questions %}
+                <div class="question-card" id="question-{{ forloop.counter }}">
+                    <div class="question-header">
+                        <h3>Question {{ forloop.counter }}</h3>
+                        <span class="points">{{ question.points }} points</span>
+                    </div>
+                    
+                    <div class="question-body">
+                        <p class="question-text">{{ question.text }}</p>
+                        
+                        {% if question.question_type == 'mcq' %}
+                        <div class="choices">
+                            {% for choice in question.choices.all %}
+                            <label class="choice-label">
+                                <input type="checkbox" 
+                                       name="question_{{ question.id }}_{{ choice.id }}"
+                                       value="true"
+                                       class="choice-input">
+                                <span class="choice-text">{{ choice.text }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        
+                        {% elif question.question_type == 'truefalse' %}
+                        <div class="choices">
+                            <label class="choice-label">
+                                <input type="radio" 
+                                       name="question_{{ question.id }}" 
+                                       value="true"
+                                       class="choice-input">
+                                <span class="choice-text">Vrai</span>
+                            </label>
+                            <label class="choice-label">
+                                <input type="radio" 
+                                       name="question_{{ question.id }}" 
+                                       value="false"
+                                       class="choice-input">
+                                <span class="choice-text">Faux</span>
+                            </label>
+                        </div>
+                        
+                        {% elif question.question_type == 'single' %}
+                        <div class="choices">
+                            {% for choice in question.choices.all %}
+                            <label class="choice-label">
+                                <input type="radio" 
+                                       name="question_{{ question.id }}" 
+                                       value="{{ choice.id }}"
+                                       class="choice-input">
+                                <span class="choice-text">{{ choice.text }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        
+                        {% else %}
+                        <textarea name="question_{{ question.id }}" 
+                                  class="form-control" 
+                                  rows="3"
+                                  placeholder="Votre réponse..."></textarea>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="quiz-actions">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-paper-plane"></i> Soumettre le quiz
+                </button>
+                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                    <i class="fas fa-times"></i> Annuler et retourner
+                </button>
+            </div>
+            
+            <!-- Champs cachés pour le temps -->
+            <input type="hidden" name="time_taken" id="timeTaken" value="0">
+            <input type="hidden" name="start_time" id="startTime" value="{{ start_time|default:'' }}">
+        </form>
+    </div>
+
+<script>
+    // Récupérer les données du quiz
+    var quizData = document.getElementById('quiz-data');
+    var timeLimit = quizData ? parseInt(quizData.getAttribute('data-time-limit')) : 30;
+    var questionsCount = quizData ? parseInt(quizData.getAttribute('data-questions-count')) : 0;
+    
+    var timeLeft = timeLimit * 60;
+    var timerInterval;
+    var startTime = new Date();
+    
+    // Fonction pour ajouter un zéro devant les nombres < 10
+    function padZero(num) {
+        return num < 10 ? '0' + num : num;
+    }
+    
+    // Démarrer le timer
+    function startTimer() {
+        var timerElement = document.getElementById('timer');
+        
+        function updateTimer() {
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert("Temps écoulé ! Le quiz sera soumis automatiquement.");
+                submitQuiz();
+                return;
+            }
+            
+            var minutes = Math.floor(timeLeft / 60);
+            var seconds = timeLeft % 60;
+            
+            if (timerElement) {
+                timerElement.textContent = padZero(minutes) + ':' + padZero(seconds);
+                
+                // Changer la couleur quand il reste moins de 5 minutes
+                if (timeLeft <= 300) {
+                    timerElement.classList.add('timer-warning');
+                }
+            }
+            
+            // Sauvegarder le temps écoulé
+            var timeTakenField = document.getElementById('timeTaken');
+            if (timeTakenField) {
+                timeTakenField.value = (timeLimit * 60) - timeLeft;
+            }
+            
+            timeLeft--;
+        }
+        
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+    
+    // Sauvegarder la progression dans localStorage
+    function saveProgress() {
+        var answers = {};
+        
+        // Collecter toutes les réponses
+        var inputs = document.querySelectorAll('.choice-input:checked, textarea');
+        for (var i = 0; i < inputs.length; i++) {
+            var element = inputs[i];
+            if (element.type === 'checkbox' || element.type === 'radio') {
+                answers[element.name] = element.value;
+            } else if (element.tagName === 'TEXTAREA') {
+                answers[element.name] = element.value;
+            }
+        }
+        
+        // Sauvegarder dans localStorage
+        localStorage.setItem('quiz_{{ quiz.id }}_answers', JSON.stringify(answers));
+        localStorage.setItem('quiz_{{ quiz.id }}_time', timeLeft.toString());
+        
+        console.log('Progression sauvegardée localement');
+    }
+    
+    // Charger les réponses sauvegardées
+    function loadSavedAnswers() {
+        var saved = localStorage.getItem('quiz_{{ quiz.id }}_answers');
+        var savedTime = localStorage.getItem('quiz_{{ quiz.id }}_time');
+        
+        if (saved) {
+            try {
+                var answers = JSON.parse(saved);
+                
+                // Restaurer les réponses
+                for (var name in answers) {
+                    if (answers.hasOwnProperty(name)) {
+                        var elements = document.querySelectorAll('[name="' + name + '"]');
+                        for (var j = 0; j < elements.length; j++) {
+                            var element = elements[j];
+                            if (element.type === 'checkbox' || element.type === 'radio') {
+                                if (element.value === answers[name]) {
+                                    element.checked = true;
+                                }
+                            } else if (element.tagName === 'TEXTAREA') {
+                                element.value = answers[name];
+                            }
+                        }
+                    }
+                }
+                
+                // Restaurer le temps si nécessaire
+                if (savedTime) {
+                    timeLeft = parseInt(savedTime);
+                }
+                
+                console.log('Réponses restaurées depuis la sauvegarde');
+            } catch (error) {
+                console.error('Erreur lors du chargement des réponses:', error);
+            }
+        }
+    }
+    
+    // Soumettre le quiz
+    function submitQuiz() {
+        // Calculer le temps total
+        var endTime = new Date();
+        var timeTaken = Math.floor((endTime - startTime) / 1000);
+        var timeTakenField = document.getElementById('timeTaken');
+        if (timeTakenField) {
+            timeTakenField.value = timeTaken;
+        }
+        
+        // Soumettre le formulaire
+        document.getElementById('quizForm').submit();
+    }
+    // Gérer le bouton annuler
+document.getElementById('cancelBtn').addEventListener('click', function() {
+    if (confirm('Êtes-vous sûr de vouloir quitter le quiz ? Votre progression sera sauvegardée.')) {
+        window.location.href = "{% url 'course_detail' quiz.chapter.module.course.id %}";
+    }
+});
+    
+    // Initialiser quand la page est chargée
+    window.onload = function() {
+        // Sauvegarder l'heure de début
+        var startTimeField = document.getElementById('startTime');
+        if (startTimeField) {
+            startTimeField.value = startTime.toISOString();
+        }
+        
+        // Démarrer le timer
+        startTimer();
+        
+        // Charger les réponses sauvegardées
+        loadSavedAnswers();
+        
+        // Sauvegarde automatique toutes les 30 secondes
+        setInterval(saveProgress, 30000);
+        
+        // Validation avant soumission
+        var quizForm = document.getElementById('quizForm');
+        if (quizForm) {
+            quizForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                var answered = document.querySelectorAll('.choice-input:checked, textarea').length;
+                var totalQuestions = questionsCount;
+                
+                var message = '';
+                if (answered === totalQuestions) {
+                    message = 'Voulez-vous soumettre votre quiz ?';
+                } else if (answered === 0) {
+                    message = 'Vous n\'avez répondu à aucune question. Voulez-vous quand même soumettre ?';
+                } else {
+                    message = 'Vous avez répondu à ' + answered + ' sur ' + totalQuestions + ' questions. Voulez-vous soumettre ?';
+                }
+                
+                if (confirm(message)) {
+                    // Calculer le temps total
+                    var endTime = new Date();
+                    var timeTaken = Math.floor((endTime - startTime) / 1000);
+                    var timeTakenField = document.getElementById('timeTaken');
+                    if (timeTakenField) {
+                        timeTakenField.value = timeTaken;
+                    }
+                    
+                    // Soumettre le formulaire
+                    this.submit();
+                }
+            });
+        }
+    };
+</script>
+</body>
+</html>

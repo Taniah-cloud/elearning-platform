@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Quiz - Teacher</title>
+    <style>
+        /* TOUS LES STYLES DANS LE HEAD */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .quiz-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .quiz-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            color: #6c757d;
+        }
+        /* Classes pour éviter les styles inline */
+        .quiz-title {
+            margin-top: 0;
+            color: #333;
+        }
+        .quiz-description {
+            color: #666;
+        }
+        .quiz-info {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .info-line {
+            margin: 5px 0;
+        }
+        .empty-icon {
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-question-circle"></i> Mes Quiz</h1>
+        <div>
+            <a href="{% url 'teacher_dashboard' %}" class="btn btn-warning">
+                <i class="fas fa-arrow-left"></i> Retour dashboard
+            </a>
+            <a href="{% url 'create_quiz_general' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nouveau quiz
+            </a>
+        </div>
+    </div>
+    
+    {% if quizzes %}
+    <div class="quiz-grid">
+        {% for quiz in quizzes %}
+        <div class="quiz-card">
+            <h3 class="quiz-title">{{ quiz.title }}</h3>
+            <p class="quiz-description">{{ quiz.description|default:"Pas de description" }}</p>
+            
+            <div class="quiz-info">
+                <p class="info-line"><strong>Cours:</strong> {{ quiz.chapter.module.course.title }}</p>
+                <p class="info-line"><strong>Chapitre:</strong> {{ quiz.chapter.title }}</p>
+                <p class="info-line"><strong>Questions:</strong> {{ quiz.questions.count }}</p>
+                <p class="info-line"><strong>Score requis:</strong> {{ quiz.passing_score }}%</p>
+                <p class="info-line"><strong>Durée:</strong> {{ quiz.time_limit }} min</p>
+            </div>
+            
+            <div class="quiz-actions">
+                <a href="{% url 'add_questions_to_quiz' quiz.id %}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Gérer questions
+                </a>
+                <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-warning">
+                    <i class="fas fa-eye"></i> Prévisualiser
+                </a>
+                <form method="post" action="{% url 'delete_quiz' quiz.id %}" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer ce quiz?')">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-question-circle fa-3x empty-icon"></i>
+        <h3>Aucun quiz créé</h3>
+        <p>Vous n'avez pas encore créé de quiz.</p>
+        <a href="{% url 'teacher_create_quiz_simple' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Créer votre premier quiz
+        </a>
+    </div>
+    {% endif %}
+</body>
+</html>

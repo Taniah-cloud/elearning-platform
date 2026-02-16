@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Accueil - E-learning</title>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fas fa-graduation-cap logo-icon"></i> E-learning
+            </a>
+            
+            <div class="user-info">
+                {% if user.is_authenticated %}
+                    <span>Bonjour, {{ user.username }}</span>
+                    {% if user.role == "teacher" %}
+                        <span class="badge badge-teacher">Enseignant</span>
+                    {% else %}
+                        <span class="badge badge-student">Étudiant</span>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-sign-in-alt"></i> Connexion
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Plateforme E-learning</h1>
+            <p class="dashboard-subtitle">Apprenez à votre rythme</p>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-number">{{ total_courses }}</div>
+                <div class="stat-label">Cours disponibles</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number">{{ total_students }}</div>
+                <div class="stat-label">Étudiants</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-number">{{ total_teachers }}</div>
+                <div class="stat-label">Enseignants</div>
+            </div>
+        </div>
+
+        <!-- Graphique Plotly Python -->
+        <div class="graph-container">
+            {{ plot_div|safe }}
+        </div>
+
+        <!-- Cours disponibles -->
+        <h2 class="text-center mb-3">Cours disponibles</h2>
+        
+        {% if courses %}
+            <div class="course-grid">
+                {% for course in courses %}
+                    <div class="course-card">
+                        <div class="course-header">
+                            <h3 class="course-title">{{ course.title }}</h3>
+                            {% if course.teacher %}
+                            <p class="teacher-name">Par: {{ course.teacher.username }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="course-body">
+                            <p class="course-description">
+                                {{ course.description|truncatewords:30 }}
+                            </p>
+                            <div class="course-actions">
+                                <a href="{% url 'course_detail' course.id %}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                                
+                                {% if user.is_authenticated and user.role == "teacher" %}
+                                    <a href="{% url 'edit_course' course.id %}" class="btn btn-success">
+                                        <i class="fas fa-edit"></i> Éditer
+                                    </a>
+                                    <a href="{% url 'delete_course' course.id %}" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle"></i>
+                Aucun cours disponible pour le moment.
+            </div>
+        {% endif %}
+    </div>
+    
+    <style>
+        .graph-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .teacher-name {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+    </style>
+</body>
+</html>

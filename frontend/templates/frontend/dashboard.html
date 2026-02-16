@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Étudiant</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fas fa-graduation-cap"></i> E-learning
+            </a>
+            <div class="user-info">
+                <span>Bonjour, {{ user.username }}</span>
+                <span class="badge badge-student">Étudiant</span>
+                <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="dashboard-title text-center mb-4">Dashboard Étudiant</h1>
+        <h2 class="dashboard-subtitle text-center mb-5">Bienvenue {{ user.username }}</h2>
+
+{% if enrollments %}
+    {{ course_titles|json_script:"course-data" }}
+    {{ course_progress|json_script:"progress-data" }}
+
+    <div id="progress-chart" style="width:100%; height:400px; border:1px solid #ccc;"></div>
+    
+    <script>
+        (function() {
+            try {
+                var coursesEl = document.getElementById("course-data");
+                var progressesEl = document.getElementById("progress-data");
+                
+                if (!coursesEl || !progressesEl) {
+                    console.error("Éléments JSON introuvables");
+                    return;
+                }
+                
+                var courses = JSON.parse(coursesEl.textContent);
+                var progresses = JSON.parse(progressesEl.textContent);
+                
+                console.log("Cours:", courses);
+                console.log("Progressions:", progresses);
+                
+                if (courses.length === 0) {
+                    document.getElementById("progress-chart").innerHTML = "Aucune donnée";
+                    return;
+                }
+                
+                var textes = [];
+                for (var i = 0; i < progresses.length; i++) {
+                    textes.push(progresses[i] + '%');
+                }
+                
+                Plotly.newPlot("progress-chart", [{
+                    x: courses,
+                    y: progresses,
+                    type: 'bar',
+                    marker: {color: '#4361ee'},
+                    text: textes,
+                    textposition: 'outside'
+                }], {
+                    title: "Progression par cours (%)",
+                    yaxis: {range: [0, 100]}
+                });
+                
+            } catch(e) {
+                console.error("ERREUR:", e);
+                document.getElementById("progress-chart").innerHTML = "Erreur: " + e.message;
+            }
+        })();
+    </script>
+
+
+         <!-- 👇 SECTION CERTIFICATS ICI - APRÈS LE GRAPHIQUE -->
+    <!-- Section Mes Certificats -->
+ <!-- Section Mes Certificats - SANS BOOTSTRAP -->
+{% if certificates %}
+<div class="certificates-section">
+    <div class="certificates-header">
+        <h3><i class="fas fa-certificate"></i> Mes Certificats</h3>
+    </div>
+    <div class="certificates-grid">
+        {% for cert in certificates %}
+        <div class="certificate-item">
+            <div class="certificate-card">
+                <h5 class="certificate-course">{{ cert.course.title }}</h5>
+                <p class="certificate-date">
+                    <i class="fas fa-calendar"></i> 
+                    Émis le {{ cert.issued_at|date:"d/m/Y" }}
+                </p>
+                <p class="certificate-id">
+                    <i class="fas fa-id-card"></i> 
+                    ID: {{ cert.certificate_id|slice:":8" }}...
+                </p>
+                <div class="certificate-actions">
+                    <a href="{% url 'view_certificate' cert.certificate_id %}" 
+                       class="btn-certificate btn-view">
+                        <i class="fas fa-eye"></i> Voir
+                    </a>
+                    <a href="{% url 'download_certificate' cert.certificate_id %}" 
+                       class="btn-certificate btn-download">
+                        <i class="fas fa-download"></i> Télécharger
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.certificates-section {
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+.certificates-header {
+    background: #4361ee;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px 10px 0 0;
+}
+.certificates-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+.certificates-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+}
+.certificate-item {
+    flex: 1 1 calc(50% - 20px);
+    min-width: 250px;
+}
+.certificate-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-left: 5px solid #28a745;
+    border-radius: 8px;
+    padding: 20px;
+    height: 100%;
+    transition: all 0.3s;
+}
+.certificate-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.certificate-course {
+    color: #4361ee;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+.certificate-date, .certificate-id {
+    margin: 5px 0;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+.certificate-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+.btn-certificate {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    text-align: center;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+.btn-view {
+    background: transparent;
+    border: 1px solid #4361ee;
+    color: #4361ee;
+}
+.btn-view:hover {
+    background: #4361ee;
+    color: white;
+}
+.btn-download {
+    background: transparent;
+    border: 1px solid #28a745;
+    color: #28a745;
+}
+.btn-download:hover {
+    background: #28a745;
+    color: white;
+}
+@media (max-width: 768px) {
+    .certificate-item {
+        flex: 1 1 100%;
+    }
+}
+</style>
+{% endif %}
+            <h2 class="text-center mb-4">Vos cours inscrits</h2>
+            <div class="course-grid">
+                {% for enrollment in enrollments %}
+                    <div class="course-card">
+                        <div class="course-header">
+                            <h3 class="course-title">{{ enrollment.course.title }}</h3>
+                        </div>
+                        <div class="course-body">
+                            <p class="course-description">{{ enrollment.course.description|truncatewords:30 }}</p>
+                            <p><strong>Progression : {{ enrollment.progress }}%</strong></p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-info-circle"></i>
+                Vous n'êtes inscrit à aucun cours pour l'instant.
+            </div>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Accueil
+            </a>
+        </div>
+    </div>
+</body>
+</html>

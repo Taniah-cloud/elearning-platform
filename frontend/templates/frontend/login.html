@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Connexion - E-learning</title>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-logo">
+                <h1 class="login-title">
+                    <i class="fas fa-graduation-cap logo-icon"></i> E-learning
+                </h1>
+            </div>
+            
+            {% if form.errors %}
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
+                Nom d'utilisateur ou mot de passe incorrect.
+            </div>
+            {% endif %}
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i> Nom d'utilisateur
+                    </label>
+                    <input type="text" name="username" class="form-control" 
+                           placeholder="Entrez votre nom d'utilisateur" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i> Mot de passe
+                    </label>
+                    <input type="password" name="password" class="form-control" 
+                           placeholder="Entrez votre mot de passe" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </button>
+            </form>
+            
+            <div class="text-center mt-3">
+                <small>Plateforme d'apprentissage en ligne</small>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

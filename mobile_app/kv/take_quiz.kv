@@ -1,0 +1,83 @@
+#:kivy 2.3.1
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import MDCheckbox kivymd.uix.selectioncontrol.MDCheckbox
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import dp kivy.metrics.dp
+
+<TakeQuizScreen>:
+    name: "take_quiz"
+    
+    MDBoxLayout:
+        orientation: "vertical"
+        md_bg_color: app.theme_colors['background']
+        
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(64)
+            padding: dp(20), 0, dp(20), 0
+            md_bg_color: app.theme_colors['primary']
+            
+            MDIconButton:
+                icon: "arrow-left"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                on_release: app.sm.current = "quiz_list"
+            
+            MDLabel:
+                id: quiz_title_label
+                text: "Quiz"
+                halign: "center"
+                font_style: "H5"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                bold: True
+        
+        MDBoxLayout:
+            id: timer_box
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(48)
+            padding: dp(20)
+            md_bg_color: app.theme_colors['secondary']
+            
+            MDLabel:
+                text: "Temps restant :"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                size_hint_x: 0.6
+            
+            MDLabel:
+                id: timer_label
+                text: "--:--"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                bold: True
+                halign: "right"
+                size_hint_x: 0.4
+        
+        ScrollView:
+            do_scroll_x: False
+            id: scroll
+            bar_width: dp(4)
+            
+            MDBoxLayout:
+                id: questions_container
+                orientation: "vertical"
+                padding: dp(20)
+                spacing: dp(20)
+                size_hint_y: None
+                height: self.minimum_height
+        
+        MDRaisedButton:
+            id: submit_btn
+            text: "SOUMETTRE LE QUIZ"
+            size_hint: 0.9, None
+            height: dp(50)
+            pos_hint: {"center_x": 0.5}
+            md_bg_color: app.theme_colors['success']
+            on_release: root.submit_quiz()

@@ -1,0 +1,89 @@
+#:kivy 2.3.1
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDTextField kivymd.uix.textfield.MDTextField
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import dp kivy.metrics.dp
+#:import MDCard kivymd.uix.card.MDCard
+
+<LoginScreen>:
+    name: "login"
+    
+    FloatLayout:
+        md_bg_color: app.theme_colors['primary_dark']
+        
+        MDCard:
+            orientation: "vertical"
+            padding: dp(30)
+            spacing: dp(25)
+            size_hint: 0.85, 0.7
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            md_bg_color: [1, 1, 1, 1]
+            
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: dp(120)
+                spacing: dp(10)
+                padding: [0, dp(20), 0, 0]
+                pos_hint: {"center_x": 0.5}
+                
+                MDLabel:
+                    text: "Plateforme E-Learning"
+                    halign: "center"
+                    font_style: "H4"
+                    theme_text_color: "Primary"
+                    bold: True
+                    size_hint_y: None
+                    height: dp(50)
+                
+                MDLabel:
+                    text: "Système de gestion académique"
+                    halign: "center"
+                    font_style: "Subtitle1"
+                    theme_text_color: "Secondary"
+                    size_hint_y: None
+                    height: dp(30)
+            
+            MDBoxLayout:
+                orientation: "vertical"
+                spacing: dp(25)
+                padding: [dp(20), 0]
+                size_hint_y: 0.7
+                pos_hint: {"center_x": 0.5}
+                
+                MDLabel:
+                    text: "Connexion"
+                    halign: "center"
+                    font_style: "H5"
+                    theme_text_color: "Primary"
+                    bold: True
+                    size_hint_y: None
+                    height: dp(40)
+                
+                MDTextField:
+                    id: username
+                    hint_text: "Nom d'utilisateur"
+                    mode: "fill"
+                    size_hint_x: 0.9
+                    pos_hint: {"center_x": 0.5}
+                    icon_left: "account"
+                    fill_color: app.theme_colors['gray_light']
+                
+                MDTextField:
+                    id: password
+                    hint_text: "Mot de passe"
+                    password: True
+                    mode: "fill"
+                    size_hint_x: 0.9
+                    pos_hint: {"center_x": 0.5}
+                    icon_left: "key"
+                    fill_color: app.theme_colors['gray_light']
+                
+                MDRaisedButton:
+                    text: "Se connecter"
+                    size_hint: 0.6, None
+                    height: dp(48)
+                    pos_hint: {"center_x": 0.5}
+                    md_bg_color: app.theme_colors['primary']
+                    on_release: root.login_user()

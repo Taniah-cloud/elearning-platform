@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Liste des cours - E-learning</title>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fas fa-graduation-cap"></i> E-learning
+            </a>
+            <div>
+                <a href="{% url 'home' %}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Accueil
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="dashboard-title text-center mb-4">Liste des cours</h1>
+        
+        {% if courses %}
+            <div class="course-grid">
+                {% for course in courses %}
+                    <div class="course-card">
+                        <div class="course-header">
+                            <h3 class="course-title">{{ course.title }}</h3>
+                        </div>
+                        <div class="course-body">
+                            <p class="course-description">
+                                {{ course.description|truncatewords:40 }}
+                            </p>
+                            <div class="course-actions">
+                                <a href="{% url 'course_detail' course.id %}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Voir le cours
+                                </a>
+                                
+                                {% if user.is_authenticated and user.role == "teacher" %}
+                                    <a href="{% url 'edit_course' course.id %}" class="btn btn-success">
+                                        <i class="fas fa-edit"></i> Éditer
+                                    </a>
+                                    <a href="{% url 'delete_course' course.id %}" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle"></i>
+                Aucun cours disponible pour le moment.
+            </div>
+        {% endif %}
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            </a>
+        </div>
+    </div>
+</body>
+</html>

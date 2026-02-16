@@ -1,0 +1,215 @@
+#:kivy 2.3.1
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import MDGridLayout kivymd.uix.gridlayout.MDGridLayout
+#:import dp kivy.metrics.dp
+#:import MDIconButton kivymd.uix.button.MDIconButton
+
+<HomeScreen>:
+    name: "home"
+    
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: 0
+        md_bg_color: app.theme_colors['primary']
+        
+        # Header
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(64)
+            padding: dp(20), 0, dp(20), 0
+            md_bg_color: app.theme_colors['primary_dark']
+            
+            MDLabel:
+                text: "Tableau de Bord"
+                halign: "left"
+                valign: "middle"
+                font_style: "H5"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                bold: True
+            
+            MDIconButton:
+                id: add_course_btn
+                icon: "plus"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                on_release: root.add_course()
+            
+            MDIconButton:
+                icon: "logout"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                on_release: root.logout()
+        
+        # Contenu principal avec ScrollView
+        ScrollView:
+            do_scroll_x: False
+            bar_width: dp(4)
+            bar_color: [1, 1, 1, 0.3]
+            
+            MDBoxLayout:
+                orientation: "vertical"
+                padding: dp(20)
+                spacing: dp(25)
+                size_hint_y: None
+                height: self.minimum_height
+                size_hint_x: 1
+                
+                # Titre en français
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: dp(100)
+                    spacing: dp(5)
+                    padding: [dp(10), dp(20)]
+                    pos_hint: {"center_x": 0.5}
+                    
+                    MDLabel:
+                        text: "Plateforme E-Learning"
+                        halign: "center"
+                        font_style: "H4"
+                        theme_text_color: "Custom"
+                        text_color: [1, 1, 1, 1]
+                        bold: True
+                    
+                    MDLabel:
+                        text: "Système de gestion académique"
+                        halign: "center"
+                        font_style: "Subtitle1"
+                        theme_text_color: "Custom"
+                        text_color: [0.9, 0.9, 0.95, 1]
+                
+                # Statistiques - Deux cartes côte à côte
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    height: dp(130)
+                    spacing: dp(20)
+                    padding: [dp(20), 0]
+                    size_hint_x: 0.95
+                    pos_hint: {"center_x": 0.5}
+                    
+                    # Carte Cours
+                    MDCard:
+                        orientation: "vertical"
+                        padding: dp(20)
+                        size_hint_x: 0.45
+                        #elevation: 4
+                        #radius: [dp(12),]
+                        #shadow_radius: [0,0,0,0]
+                        md_bg_color: [1, 1, 1, 1]
+                        
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            spacing: dp(10)
+                            pos_hint: {"center_x": 0.5}
+                            
+                            MDLabel:
+                                text: "COURS"
+                                font_style: "Caption"
+                                theme_text_color: "Secondary"
+                                halign: "center"
+                                bold: True
+                                size_hint_y: None
+                                height: dp(20)
+                            
+                            MDLabel:
+                                id: courses_label
+                                text: "0"
+                                font_style: "H2"
+                                halign: "center"
+                                theme_text_color: "Primary"
+                                bold: True
+                                size_hint_y: None
+                                height: dp(50)
+                    
+                    # Carte Activités
+                    MDCard:
+                        orientation: "vertical"
+                        padding: dp(20)
+                        size_hint_x: 0.45
+                        #elevation: 4
+                        #radius: [dp(12),]
+                        #shadow_radius: [0,0,0,0]
+                        md_bg_color: [1, 1, 1, 1]
+                        
+                        MDBoxLayout:
+                            orientation: "vertical"
+                            spacing: dp(10)
+                            pos_hint: {"center_x": 0.5}
+                            
+                            MDLabel:
+                                text: "ACTIVITÉS"
+                                font_style: "Caption"
+                                theme_text_color: "Secondary"
+                                halign: "center"
+                                bold: True
+                                size_hint_y: None
+                                height: dp(20)
+                            
+                            MDLabel:
+                                id: stats_label
+                                text: "0"
+                                font_style: "H2"
+                                halign: "center"
+                                theme_text_color: "Primary"
+                                bold: True
+                                size_hint_y: None
+                                height: dp(50)
+                
+                # Bouton Mes Quiz (uniquement pour étudiant)
+                MDRaisedButton:
+                    id: quiz_btn
+                    text: "📋  MES QUIZ"
+                    size_hint: 0.9, None
+                    height: dp(50)
+                    pos_hint: {"center_x": 0.5}
+                    md_bg_color: app.theme_colors['secondary']
+                    elevation: 4
+                    on_release: root.open_quiz_list()
+                    opacity: 1 if app.role == 'student' else 0
+                    disabled: app.role != 'student'
+                
+                # Section des cours
+                MDCard:
+                    orientation: "vertical"
+                    padding: dp(20)
+                    #elevation: 4
+                    #radius: [dp(12),]
+                    #shadow_radius: [0,0,0,0]
+                    md_bg_color: [1, 1, 1, 1]
+                    size_hint_x: 0.95
+                    pos_hint: {"center_x": 0.5}
+                    size_hint_y: None
+                    height: dp(400)
+                    
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        size_hint_y: None
+                        height: dp(50)
+                        spacing: dp(10)
+                        
+                        MDLabel:
+                            text: "Mes Cours"
+                            font_style: "H5"
+                            theme_text_color: "Primary"
+                            bold: True
+                            size_hint_x: 0.8
+                    
+                    ScrollView:
+                        do_scroll_x: False
+                        size_hint_y: 1
+                        
+                        MDGridLayout:
+                            id: courses_container
+                            cols: 1
+                            adaptive_height: True
+                            spacing: dp(20)
+                            size_hint_y: None
+                            size_hint_x: 1
+                            height: self.minimum_height

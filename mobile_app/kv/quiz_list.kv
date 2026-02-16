@@ -1,0 +1,43 @@
+#:kivy 2.3.1
+#:import MDBoxLayout kivymd.uix.boxlayout.MDBoxLayout
+#:import MDRaisedButton kivymd.uix.button.MDRaisedButton
+#:import MDCard kivymd.uix.card.MDCard
+#:import MDLabel kivymd.uix.label.MDLabel
+#:import MDScrollView kivymd.uix.scrollview.MDScrollView
+#:import MDGridLayout kivymd.uix.gridlayout.MDGridLayout
+#:import MDIconButton kivymd.uix.button.MDIconButton
+#:import dp kivy.metrics.dp
+
+<QuizListScreen>:
+    name: "quiz_list"
+    
+    MDBoxLayout:
+        orientation: "vertical"
+        md_bg_color: app.theme_colors['background']
+        
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: dp(64)
+            padding: dp(20), 0, dp(20), 0
+            md_bg_color: app.theme_colors['primary']
+            
+            MDIconButton:
+                icon: "arrow-left"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                on_release: app.sm.current = "home"
+            
+            MDLabel:
+                text: "Mes Quiz"
+                halign: "center"
+                font_style: "H5"
+                theme_text_color: "Custom"
+                text_color: [1, 1, 1, 1]
+                bold: True
+        
+        MDBoxLayout:
+            id: content_area
+            orientation: "vertical"
+            padding: dp(20)
+            spacing: dp(20)

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord Enseignant</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fas fa-graduation-cap logo-icon"></i> E-learning
+            </a>
+            <div class="user-info">
+                <span>Bonjour, {{ user.username }}</span>
+                <span class="badge badge-teacher">
+                    <i class="fas fa-chalkboard-teacher"></i> Enseignant
+                </span>
+                <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">
+                <i class="fas fa-chalkboard-teacher"></i> Tableau de bord Enseignant
+            </h1>
+            <p class="dashboard-subtitle">Gérez vos cours et suivez vos étudiants</p>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-number">{{ courses.count }}</div>
+                <div class="stat-label">Cours créés</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number">{{ total_students }}</div>
+                <div class="stat-label">Étudiants inscrits</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-number">{{ avg_progress }}%</div>
+                <div class="stat-label">Progression moyenne</div>
+            </div>
+        </div>
+
+        <!-- Graphique Plotly Python -->
+        <div class="graph-container mt-4">
+            {{ plot_div|safe }}
+        </div>
+
+        <!-- Créer un nouveau cours -->
+        <div class="form-container">
+            <h2 class="text-center mb-3">
+                <i class="fas fa-plus-circle"></i> Créer un nouveau cours
+            </h2>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-heading"></i> Titre du cours
+                    </label>
+                    <input type="text" name="title" class="form-control" 
+                           placeholder="Ex: Introduction à Python" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-align-left"></i> Description
+                    </label>
+                    <textarea name="description" class="form-control" rows="4" 
+                              placeholder="Décrivez votre cours..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-book-open"></i> Contenu détaillé
+                    </label>
+                    <textarea name="content" class="form-control" rows="8" 
+                              placeholder="Contenu du cours..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-save"></i> Créer le cours
+                </button>
+            </form>
+        </div>
+
+        <!-- Vos cours -->
+        <div class="section-header">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-book"></i> Vos cours
+            </h2>
+        </div>
+        
+        {% if courses %}
+            <div class="course-grid">
+                {% for course in courses %}
+                    <div class="course-card">
+                        <div class="course-header">
+                            <h3 class="course-title">{{ course.title }}</h3>
+                        </div>
+                        <div class="course-body">
+                            <p class="course-description">
+                                {{ course.description|truncatewords:30 }}
+                            </p>
+                            <div class="course-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-user"></i> {{ course.teacher.username }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-users"></i> {{ course.enrollments.count }} étudiants
+                                </span>
+                            </div>
+                            <div class="course-actions">
+                                <a href="{% url 'course_detail' course.id %}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                                <a href="{% url 'edit_course' course.id %}" class="btn btn-success">
+                                    <i class="fas fa-edit"></i> Éditer
+                                </a>
+                                <a href="{% url 'delete_course' course.id %}" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-book-open fa-2x mb-2"></i>
+                <h3>Aucun cours créé</h3>
+                <p>Commencez par créer votre premier cours !</p>
+            </div>
+        {% endif %}
+        <!-- Ajoute cette section après la section d'inscription -->
+{% if is_enrolled and quizzes %}
+<div class="mt-4">
+    <h3><i class="fas fa-question-circle"></i> Quiz disponibles</h3>
+    <div class="quiz-list">
+        {% for quiz in quizzes %}
+        <div class="quiz-item card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ quiz.title }}</h5>
+                <p class="card-text">{{ quiz.description|default:"Pas de description" }}</p>
+                <div class="quiz-info">
+                    <span><i class="fas fa-clock"></i> {{ quiz.time_limit }} min</span>
+                    <span><i class="fas fa-check-circle"></i> Score minimum: {{ quiz.passing_score }}%</span>
+                    <span><i class="fas fa-question"></i> {{ quiz.questions.count }} questions</span>
+                </div>
+                <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-primary mt-2">
+                    <i class="fas fa-play"></i> Passer le quiz
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+                <!-- Section Création de Quiz -->
+        <div class="form-container mt-5">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-plus-circle"></i> Créer un nouveau quiz
+            </h2>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-magic fa-3x text-primary mb-3"></i>
+                            <h4 class="card-title">Création rapide</h4>
+                            <p class="card-text">
+                                Créez un quiz directement depuis votre dashboard
+                            </p>
+                            <a href="{% url 'teacher_create_quiz_simple' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Créer un quiz
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-cogs fa-3x text-warning mb-3"></i>
+                            <h4 class="card-title">Gérer mes quiz</h4>
+                            <p class="card-text">
+                                Voir et gérer tous vos quiz existants
+                            </p>
+                            <a href="{% url 'teacher_manage_quizzes' %}" class="btn btn-primary">
+                                <i class="fas fa-list"></i> Voir mes quiz
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'home' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            </a>
+        </div>
+    </div>
+    
+    <style>
+        .graph-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin: 30px 0;
+        }
+        
+        .meta-item {
+            display: inline-block;
+            margin-right: 15px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .meta-item i {
+            margin-right: 5px;
+        }
+    </style>
+</body>
+</html>

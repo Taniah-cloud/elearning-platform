@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificat - {{ certificate.course.title }}</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .print-btn-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .certificate-wrapper {
+            width: 100%;
+            max-width: 1100px;
+            margin: 100px auto 40px;
+        }
+        
+        .certificate {
+            background: white;
+            padding: 50px;
+            border: 20px solid #2c3e50;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100px;
+            color: rgba(44, 62, 80, 0.05);
+            font-weight: bold;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .certificate-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .certificate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+        }
+        
+        .logo {
+            font-size: 24px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .certificate-id {
+            font-family: monospace;
+            color: #7b8a8b;
+            font-size: 14px;
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        
+        .title-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .title {
+            font-size: 48px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            color: #7b8a8b;
+        }
+        
+        .content-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .award-text {
+            font-size: 20px;
+            color: #34495e;
+            margin-bottom: 20px;
+        }
+        
+        .student-name {
+            font-size: 42px;
+            color: #2c3e50;
+            font-weight: bold;
+            margin: 30px 0;
+            padding: 20px 40px;
+            border: 3px solid #3498db;
+            border-radius: 15px;
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(52,152,219,0.1) 0%, rgba(52,152,219,0.2) 100%);
+        }
+        
+        .course-name {
+            font-size: 36px;
+            color: #3498db;
+            font-weight: bold;
+            margin: 30px 0;
+        }
+        
+        .description {
+            font-size: 18px;
+            color: #7b8a8b;
+            line-height: 1.8;
+            margin: 30px 0;
+            padding: 0 50px;
+        }
+        
+        .details-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+            text-align: left;
+            border-left: 5px solid #3498db;
+        }
+        
+        .details-card p {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        
+        .signatures {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 2px solid #e1e8ed;
+        }
+        
+        .signature-box {
+            text-align: center;
+        }
+        
+        .signature-line {
+            width: 200px;
+            border-top: 2px solid #2c3e50;
+            margin: 15px auto 10px;
+        }
+        
+        .signature-box p {
+            color: #7b8a8b;
+            font-size: 14px;
+        }
+        
+        .signature-box .name {
+            color: #2c3e50;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .dashboard-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-dashboard {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-dashboard:hover {
+            background: #34495e;
+            transform: translateY(-3px);
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 15px; }
+            .certificate { padding: 30px; border-width: 10px; }
+            .title { font-size: 32px; }
+            .student-name { font-size: 28px; }
+            .course-name { font-size: 24px; }
+            .signatures { flex-direction: column; gap: 30px; }
+            .signature-line { width: 150px; }
+            .print-btn-container { position: relative; top: auto; right: auto; flex-direction: row; justify-content: center; margin-bottom: 20px; }
+            .watermark { font-size: 50px; }
+            .description { padding: 0 20px; }
+        }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .print-btn-container, .dashboard-link { display: none; }
+            .certificate { border: 20px solid #2c3e50; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-btn-container">
+        <a href="{% url 'download_certificate' certificate.certificate_id %}" class="btn btn-primary">
+            <i class="fas fa-download"></i> Télécharger PDF
+        </a>
+        <button onclick="window.print()" class="btn btn-secondary">
+            <i class="fas fa-print"></i> Imprimer
+        </button>
+        <a href="{% url 'verify_certificate' certificate.certificate_id %}" class="btn btn-info">
+            <i class="fas fa-check-circle"></i> Vérifier en ligne
+        </a>
+    </div>
+    
+    <div class="certificate-wrapper">
+        <div class="certificate">
+            <div class="watermark">E-LEARNING PLATFORM</div>
+            
+            <div class="certificate-content">
+                <div class="certificate-header">
+                    <div class="logo">
+                        <i class="fas fa-graduation-cap"></i> E-Learning Platform
+                    </div>
+                    <div class="certificate-id">
+                        <i class="fas fa-id-card"></i> ID: {{ certificate.certificate_id|slice:":8"|upper }}
+                    </div>
+                </div>
+                
+                <div class="title-section">
+                    <h1 class="title">CERTIFICAT DE COMPLÉTION</h1>
+                    <p class="subtitle">Plateforme d'Apprentissage en Ligne</p>
+                </div>
+                
+                <div class="content-section">
+                    <p class="award-text">Ce certificat est décerné à</p>
+                    
+                    <div class="student-name">
+                        {{ certificate.student.get_full_name|default:certificate.student.username }}
+                    </div>
+                    
+                    <p class="award-text">pour avoir complété avec succès le cours</p>
+                    
+                    <div class="course-name">
+                        {{ certificate.course.title }}
+                    </div>
+                    
+                    <p class="description">
+                        L'étudiant a démontré une compréhension approfondie des concepts enseignés,
+                        a complété tous les modules requis, et a réussi les évaluations avec excellence.
+                    </p>
+                    
+                    <div class="details-card">
+                        <p><i class="fas fa-calendar"></i> <strong>Date d'émission:</strong> {{ certificate.issued_at|date:"d F Y" }}</p>
+                        <p><i class="fas fa-chalkboard-teacher"></i> <strong>Enseignant:</strong> {{ certificate.course.teacher.get_full_name|default:certificate.course.teacher.username }}</p>
+                        <p><i class="fas fa-book"></i> <strong>Durée du cours:</strong> {{ certificate.course.modules.count }} module{{ certificate.course.modules.count|pluralize }}</p>
+                    </div>
+                </div>
+                
+                <div class="signatures">
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>Signature de l'enseignant</p>
+                        <p class="name">{{ certificate.course.teacher.get_full_name|default:certificate.course.teacher.username }}</p>
+                    </div>
+                    
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>Directeur académique</p>
+                        <p class="name">Plateforme E-Learning</p>
+                    </div>
+                    
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>Date</p>
+                        <p class="name">{{ certificate.issued_at|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-link">
+            <a href="{% url 'dashboard' %}" class="btn-dashboard">
+                <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+            </a>
+        </div>
+    </div>
+</body>
+</html>

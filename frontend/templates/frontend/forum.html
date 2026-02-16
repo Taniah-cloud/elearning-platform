@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum: {{ course.title }} - E-learning</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'course_detail' course.id %}" class="logo">
+                <i class="fas fa-arrow-left"></i> Retour au cours
+            </a>
+            <div class="user-info">
+                <span>{{ user.username }}</span>
+                <span class="badge badge-{{ user.role }}">
+                    {{ user.get_role_display }}
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="forum-header">
+            <h1 class="dashboard-title">{{ course.title }}</h1>
+            <p class="dashboard-subtitle">Forum de discussion</p>
+        </div>
+        
+        <div class="forum-container">
+            <div class="new-message-card">
+                <form method="POST" action="{% url 'add_forum_message' course.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <textarea name="message" 
+                                  class="form-control" 
+                                  rows="3" 
+                                  placeholder="Posez une question ou partagez une pensée..."
+                                  required></textarea>
+                    </div>
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Poster
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="message-card {% if message.user == user %}my-message{% endif %}">
+                    <div class="message-header">
+                        <div class="message-user">
+                            <i class="fas fa-user-circle"></i>
+                            <strong>{{ message.user.username }}</strong>
+                            {% if message.user == course.teacher %}
+                            <span class="badge badge-teacher">Enseignant</span>
+                            {% endif %}
+                        </div>
+                        <div class="message-time">
+                            {{ message.created_at|timesince }} ago
+                        </div>
+                    </div>
+                    
+                    <div class="message-body">
+                        {{ message.message|linebreaks }}
+                    </div>
+                    
+                    <div class="message-actions">
+                        <button class="btn btn-sm btn-secondary reply-btn" 
+                                data-message-id="{{ message.id }}">
+                            <i class="fas fa-reply"></i> Répondre
+                        </button>
+                        
+                        {% if message.user == user or user.role == 'teacher' %}
+                        <button class="btn btn-sm btn-danger delete-btn"
+                                data-message-id="{{ message.id }}">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Réponses -->
+                    {% for reply in message.replies.all %}
+                    <div class="reply-card">
+                        <div class="reply-header">
+                            <i class="fas fa-reply"></i>
+                            <strong>{{ reply.user.username }}</strong>
+                            <span class="reply-time">{{ reply.created_at|timesince }} ago</span>
+                        </div>
+                        <div class="reply-body">
+                            {{ reply.message }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Formulaire de réponse (caché) -->
+                    <div class="reply-form" id="reply-form-{{ message.id }}">
+                        <form method="POST" action="{% url 'add_forum_message' course.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="parent_id" value="{{ message.id }}">
+                            <div class="form-group">
+                                <textarea name="message" 
+                                          class="form-control" 
+                                          rows="2" 
+                                          placeholder="Votre réponse..."
+                                          required></textarea>
+                            </div>
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    Envoyer
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-secondary cancel-reply"
+                                        data-message-id="{{ message.id }}">
+                                    Annuler
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Aucun message dans le forum. Soyez le premier à poster !
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .forum-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .new-message-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        .message-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .my-message {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .message-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .message-time {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .message-body {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .message-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .reply-card {
+            margin-left: 30px;
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--gray-lighter);
+            border-radius: var(--border-radius);
+            border-left: 3px solid var(--secondary);
+        }
+        
+        .reply-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .reply-form {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--gray-lighter);
+            border-radius: var(--border-radius);
+            display: none;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+    </style>
+
+    <script>
+        // Gérer les réponses
+        document.querySelectorAll('.reply-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const messageId = this.dataset.messageId;
+                const form = document.getElementById('reply-form-' + messageId);
+                if (form.style.display === 'none' || form.style.display === '') {
+                    form.style.display = 'block';
+                } else {
+                    form.style.display = 'none';
+                }
+            });
+        });
+        
+        // Annuler les réponses
+        document.querySelectorAll('.cancel-reply').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const messageId = this.dataset.messageId;
+                document.getElementById('reply-form-' + messageId).style.display = 'none';
+            });
+        });
+        
+        // Masquer tous les formulaires de réponse initialement
+        document.querySelectorAll('.reply-form').forEach(function(form) {
+            form.style.display = 'none';
+        });
+        
+        // Auto-refresh toutes les 30 secondes
+        setInterval(function() {
+            fetch(window.location.href)
+                .then(function(response) { return response.text(); })
+                .then(function(html) {
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, 'text/html');
+                    const newMessages = newDoc.querySelector('.messages-container').innerHTML;
+                    document.querySelector('.messages-container').innerHTML = newMessages;
+                });
+        }, 30000);
+    </script>
+</body>
+</html>

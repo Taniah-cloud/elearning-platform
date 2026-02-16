@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gérer les questions - {{ quiz.title }}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .manage-questions-container {
+            max-width: 1200px;
+            margin: 40px auto;
+        }
+        
+        .manage-header {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .quiz-info-box {
+            background: var(--gray-lighter);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .questions-list {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .question-item {
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        .question-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .question-type-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .question-type-mcq {
+            background: var(--info-light);
+            color: var(--info-dark);
+        }
+        
+        .question-type-truefalse {
+            background: var(--warning-light);
+            color: var(--warning-dark);
+        }
+        
+        .question-type-single {
+            background: var(--success-light);
+            color: var(--success-dark);
+        }
+        
+        .choices-list {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .choice-item {
+            margin: 8px 0;
+            padding: 8px;
+            border-left: 3px solid var(--gray);
+        }
+        
+        .choice-item.correct {
+            border-left-color: var(--success);
+            background: var(--success-light);
+        }
+        
+        .add-question-form {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+        }
+        
+        .form-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--gray-light);
+            padding-bottom: 10px;
+        }
+        
+        .form-tab {
+            padding: 10px 20px;
+            background: var(--gray-lighter);
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        
+        .form-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .question-type-form {
+            display: none;
+        }
+        
+        .question-type-form.active {
+            display: block;
+        }
+        
+        .choices-inputs {
+            margin: 15px 0;
+        }
+        
+        .choice-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        /* Styles pour le formulaire inline */
+        .inline-form {
+            display: inline;
+        }
+        
+        .btn-icon {
+            background: transparent;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-icon:hover {
+            opacity: 0.8;
+        }
+        
+        /* Styles pour les alertes */
+        .explanation-box {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--info-light);
+            border-left: 4px solid var(--info);
+            border-radius: 4px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .question-item-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .form-tabs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="{% url 'teacher_manage_quizzes' %}" class="logo">
+                <i class="fas fa-arrow-left"></i> Retour aux quiz
+            </a>
+            <div class="user-info">
+                <span>{{ user.username }}</span>
+                <span class="badge badge-teacher">Enseignant</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="manage-questions-container">
+            <div class="manage-header">
+                <h1 class="dashboard-title">
+                    <i class="fas fa-question-circle"></i> {{ quiz.title }}
+                </h1>
+                <p class="dashboard-subtitle">Gérer les questions</p>
+                
+                <div class="quiz-info-box">
+                    <div class="row">
+                        <div class="col">
+                            <p><strong>Cours:</strong> {{ quiz.chapter.module.course.title }}</p>
+                            <p><strong>Chapitre:</strong> {{ quiz.chapter.title }}</p>
+                        </div>
+                        <div class="col">
+                            <p><strong>Questions:</strong> {{ questions|length }}</p>
+                            <p><strong>Score requis:</strong> {{ quiz.passing_score }}%</p>
+                            <p><strong>Durée:</strong> {{ quiz.time_limit }} min</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Liste des questions existantes -->
+            <div class="questions-list">
+                <h2><i class="fas fa-list"></i> Questions existantes</h2>
+                
+                {% if questions %}
+                    {% for question in questions %}
+                    <div class="question-item">
+                        <div class="question-item-header">
+                            <div>
+                                <h3>Question {{ forloop.counter }} - {{ question.points }} points</h3>
+                                <span class="question-type-badge question-type-{{ question.question_type }}">
+                                    {% if question.question_type == 'mcq' %}
+                                        Choix multiples
+                                    {% elif question.question_type == 'truefalse' %}
+                                        Vrai/Faux
+                                    {% elif question.question_type == 'single' %}
+                                        Choix unique
+                                    {% else %}
+                                        Réponse libre
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <form method="post" action="{% url 'delete_question' question.id %}" class="inline-form">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="btn btn-danger btn-sm" 
+                                        title="Supprimer cette question"
+                                        aria-label="Supprimer la question"
+                                        onclick="return confirm('Supprimer cette question ?')">
+                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <p><strong>{{ question.text }}</strong></p>
+                        
+                        {% if question.question_type != 'text' %}
+                        <div class="choices-list">
+                            {% for choice in question.choices.all %}
+                            <div class="choice-item {% if choice.is_correct %}correct{% endif %}">
+                                {{ choice.text }}
+                                {% if choice.is_correct %}
+                                <span class="badge badge-success">Correct</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if question.explanation %}
+                        <div class="explanation-box">
+                            <strong>Explication:</strong> {{ question.explanation }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Aucune question n'a été ajoutée à ce quiz.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Formulaire pour ajouter une nouvelle question -->
+            <div class="add-question-form">
+                <h2><i class="fas fa-plus"></i> Ajouter une nouvelle question</h2>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="question_text">Énoncé de la question *</label>
+                        <textarea name="question_text" id="question_text" class="form-control" 
+                                  rows="3" required placeholder="Posez votre question ici..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="points">Points</label>
+                        <input type="number" name="points" id="points" class="form-control" 
+                               value="10" min="1" step="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Type de question *</label>
+                        <div class="form-tabs">
+                            <button type="button" class="form-tab active" data-type="truefalse">Vrai/Faux</button>
+                            <button type="button" class="form-tab" data-type="single">Choix unique</button>
+                            <button type="button" class="form-tab" data-type="mcq">Choix multiples</button>
+                        </div>
+                        
+                        <input type="hidden" name="question_type" id="question_type" value="truefalse">
+                        
+                        <!-- Formulaire Vrai/Faux -->
+                        <div id="truefalse-form" class="question-type-form active">
+                            <div class="form-group">
+                                <label>Réponse correcte</label>
+                                <div>
+                                    <label class="radio-label">
+                                        <input type="radio" name="correct_answer" value="true" checked>
+                                        Vrai
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="correct_answer" value="false">
+                                        Faux
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulaire Choix unique -->
+                        <div id="single-form" class="question-type-form">
+                            <div class="choices-inputs">
+                                <p><strong>Options (cochez la bonne réponse)</strong></p>
+                                {% for i in "1234" %}
+                                <div class="choice-input-group">
+                                    <input type="radio" name="correct_single" value="{{ i }}" 
+                                           id="correct_single_{{ i }}"
+                                           {% if forloop.first %}checked{% endif %}>
+                                    <label for="correct_single_{{ i }}" class="sr-only">Option correcte {{ i }}</label>
+                                    <input type="text" name="choice_{{ i }}" 
+                                           class="form-control" 
+                                           placeholder="Option {{ i }}"
+                                           {% if forloop.counter <= 2 %}required{% endif %}>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Formulaire Choix multiples -->
+                        <div id="mcq-form" class="question-type-form">
+                            <div class="choices-inputs">
+                                <p><strong>Options (cochez toutes les bonnes réponses)</strong></p>
+                                {% for i in "1234" %}
+                                <div class="choice-input-group">
+                                    <input type="checkbox" name="correct_{{ i }}" id="correct_{{ i }}">
+                                    <label for="correct_{{ i }}" class="sr-only">Option correcte {{ i }}</label>
+                                    <input type="text" name="choice_{{ i }}" 
+                                           class="form-control" 
+                                           placeholder="Option {{ i }}"
+                                           {% if forloop.counter <= 2 %}required{% endif %}>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus-circle"></i> Ajouter la question
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Gestion des onglets de type de question
+        document.querySelectorAll('.form-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const type = this.dataset.type;
+                
+                // Activer l'onglet
+                document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Afficher le bon formulaire
+                document.querySelectorAll('.question-type-form').forEach(form => {
+                    form.classList.remove('active');
+                });
+                document.getElementById(type + '-form').classList.add('active');
+                
+                // Mettre à jour le champ caché
+                document.getElementById('question_type').value = type;
+            });
+        });
+        
+        // Gestion des choix pour MCQ/single
+        document.querySelectorAll('input[name="correct_single"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Assure qu'un seul est sélectionné pour single
+                if (this.checked) {
+                    document.querySelectorAll('input[name="correct_single"]').forEach(r => {
+                        r.checked = false;
+                    });
+                    this.checked = true;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
