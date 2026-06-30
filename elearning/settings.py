@@ -4,7 +4,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-)0)g(9l(qqkr5ej1ki1(lgkypek*gvaumwq98^k9m=ksayfodh'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # ---------------------------
 # APPS
@@ -33,6 +33,10 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+
+    # anti cache (OK maintenant)
+    'core.middleware.NoCacheMiddleware',
+
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -117,6 +121,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ]
 }
-# settings.py
-LOGIN_REDIRECT_URL = '/dashboard/'          # étudiants
-LOGOUT_REDIRECT_URL = '/login/'             # après logout
+
+# ---------------------------
+# LOGIN / LOGOUT
+# ---------------------------
+LOGIN_URL = '/login/'          # ✅ AJOUT IMPORTANT
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
