@@ -32,7 +32,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 script {
-                    sh 'sleep 5'
+                    sh 'sleep 20'
                     sh 'curl -f http://localhost:8000 || exit 1'
                 }
             }
